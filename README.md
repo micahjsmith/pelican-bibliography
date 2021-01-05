@@ -24,8 +24,8 @@ This plugin provides a new generator, `BibliographyGenerator`. When this generat
 The following variables can be configured in your `pelicanconf.py`:
 
 ```
-# A directory that contains the
-BIBLIOGRAPHY_RESEARCH_TEMPLATE: Union[str, os.PathLike]
+# A directory that contains the bibliography-related templates
+BIBLIOGRAPHY_RESEARCH_TEMPLATES: Union[str, os.PathLike]
 
 # A list of directories and files to look at for bibliographies, relative to PATH.
 BIBLIOGRAPHY_PATHS: List[str]

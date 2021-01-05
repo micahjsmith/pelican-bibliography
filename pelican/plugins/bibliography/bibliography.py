@@ -23,12 +23,15 @@ _template_path = os.path.join(
 
 
 DEFAULT_SETTINGS = {
-    'BIBLIOGRAPHY_RESEARCH_TEMPLATE': _template_path,
+    'BIBLIOGRAPHY_RESEARCH_TEMPLATES': _template_path,
     'BIBLIOGRAPHY_PATHS': ['bibliography'],
     'BIBLIOGRAPHY_EXCLUDES': [],
     'BIBLIOGRAPHY_EXTENSIONS': ['bib'],
     'BIBLIOGRAPHY_METADATA_EXTENSIONS': ['yml', 'yaml'],
     # 'BIBLIOGRAPHY_ORDER_BY': lambda ref: -ref.issued.year,  # TODO
+    'BIBLIOGRAPHY_WRITE_REFENTRIES': True,
+    'BIBLIOGRAPHY_REFENTRY_TEMPLATE_NAME': 'bibentry.html',
+    'BIBLIOGRAPHY_REFENTRY_PATH': 'files/bib/'
 }
 
 
@@ -153,15 +156,24 @@ class BibliographyGenerator(Generator):
         self._update_context(('bibliography', 'bibliography_collections', ))
 
     def generate_output(self, writer):
-        pass
+        if self.settings['BIBLIOGRAPHY_WRITE_REFENTRIES']:
+            path = self.settings['BIBLIOGRAPHY_REFENTRY_PATH']
+            template = self.env.get_template(
+                self.settings['BIBLIOGRAPHY_REFENTRY_TEMPLATE_NAME'])
+            for ref in self.bibliography:
+                if 'key' in ref.metadata:
+                    key = ref.metadata['key']
+                    dest = os.path.join(path, key + '.bib', 'index.html')
+                    writer.write_file(
+                        dest, template, self.context, override_output=True, url='', ref=ref)
 
 
 def update_settings(pelican):
     for key in DEFAULT_SETTINGS:
         pelican.settings.setdefault(key, DEFAULT_SETTINGS[key])
-    if pelican.settings['BIBLIOGRAPHY_RESEARCH_TEMPLATE']:
+    if pelican.settings['BIBLIOGRAPHY_RESEARCH_TEMPLATES']:
         pelican.settings['THEME_TEMPLATES_OVERRIDES'].append(
-            pelican.settings['BIBLIOGRAPHY_RESEARCH_TEMPLATE'])
+            pelican.settings['BIBLIOGRAPHY_RESEARCH_TEMPLATES'])
 
 
 def get_generators(pelican_object):
