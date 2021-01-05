@@ -8,6 +8,9 @@ from typing import List
 from pelican import signals
 from pelican.generators import Generator
 
+from .bibtex.models import BibtexEntry
+from .bibtex.parser import parser
+
 try:
     import citeproc
     import yaml
@@ -63,6 +66,16 @@ class Reference:
             return _lt
 
 
+def format_bibtex(entry: BibtexEntry):
+    entry_template = '@{type}{{{key},\n{fields}}}'
+    field_template = '  {key} = {value},'
+    fields = '\n'.join(
+        field_template.format(key=key, value=value)
+        for key, value in entry.fields.items()
+    )
+    return entry_template.format(type=entry.type, key=entry.key, fields=fields)
+
+
 def read_references(base_path, path, context):
     """Parse content and metadata of csl files"""
     source_path = os.path.join(base_path, path)
@@ -83,6 +96,17 @@ def read_references(base_path, path, context):
     for key in refsource:
         ref = Reference(refsource[key], deepcopy(metadata))
         references.append(ref)
+
+    # separately, parse the .bib file preserving the original markup, and
+    # reformat the bib entry
+    with open(source_path, 'r') as f:
+        entries: List[BibtexEntry] = parser.parse(f.read())
+    # lazy O(n^2)
+    for entry in entries:
+        key = entry.key
+        for ref in references:
+            if ref.metadata.get(key) == key:
+                ref.metadata['bibtex'] = format_bibtex(entry)
 
     return references
 
