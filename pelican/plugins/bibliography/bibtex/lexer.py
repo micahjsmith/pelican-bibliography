@@ -3,6 +3,8 @@ import ply.lex as lex
 
 tokens = (
     'AT',
+    'COMMA',
+    'EQUALS',
     'ID',
     'ENTRYBEGIN',
     'ENTRYEND',
@@ -17,7 +19,7 @@ states = (
 t_AT = r'@'
 
 
-def t_ID(t):
+def t_ANY_ID(t):
     r'\w+'
     t.value = str(t.value).lower()
     return t
@@ -49,8 +51,12 @@ def t_entry_RBRACE(t):
         return t
 
 
+t_entry_COMMA = r','
+t_entry_EQUALS = r'='
+
+
 def t_entry_OTHER(t):
-    r'[^\{\}]+'
+    r'[^\{\},=]+?'
     pass
 
 
