@@ -4,6 +4,7 @@ from collections import defaultdict
 from copy import deepcopy
 from functools import total_ordering
 from typing import List
+from urllib.parse import urljoin
 
 from pelican import signals
 from pelican.generators import Generator
@@ -173,8 +174,10 @@ class BibliographyGenerator(Generator):
         refdir = self.settings['BIBLIOGRAPHY_REFENTRY_PATH']
         for ref in bibliography:
             key = ref.metadata['key']
-            ref.metadata['ref_href'] = os.path.join(refdir, key + '.bib')
-            ref.metadata['ref_saveas'] = os.path.join(refdir, key + '.bib', 'index.html')
+            ref.metadata['ref_href'] = urljoin(
+                self.settings['SITEURL'], f'{refdir}/{key}.bib')
+            ref.metadata['ref_saveas'] = os.path.join(
+                refdir, key + '.bib', 'index.html')
 
         self.bibliography = bibliography
 
