@@ -1,7 +1,7 @@
 {% extends "!theme/page.html" %}
 
 {% macro citation_for(ref) -%}
-<a target="_blank" href="{{ ref.metadata.refpath }}">
+<a target="_blank" href="{{ ref.metadata.ref_href }}">
     <i class="fa fa-quote-right fa-1"></i>
 </a>
 {%- endmacro %}
@@ -34,14 +34,6 @@
 {% for ref in bibliography | sort(reverse=True, attribute='sortkey') %}
 {{ bibentry(ref) }}
 {% endfor %}
-
-<div id="citation" role="dialog" tabindex="-1">
-    <pre>
-        <code id="citation-text">
-            Here is the citation
-        </code>
-    </pre>
-</div>
 
 {% endblock %}
 

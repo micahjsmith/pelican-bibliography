@@ -4,8 +4,6 @@
         <title>{{ ref.metadata.key }}</title>
     </head>
     <body>
-        <pre>
-{{ ref.metadata.bibtex or "Loading..." }}
-        </pre>
+        <pre>{{ ref.metadata.bibtex or "Not found" }}</pre>
     </body>
 </html>

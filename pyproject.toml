@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pelican-bibliography"
-version = "0.2.0"
+version = "0.3.0"
 description = "Generated bibliography items"
 authors = ["Micah Smith <micahjsmith@gmail.com>"]
 license = "MIT"

@@ -67,7 +67,7 @@ class Reference:
 
 
 def format_bibtex(entry: BibtexEntry):
-    entry_template = '@{type}{{{key},\n{fields}}}'
+    entry_template = '@{type}{{{key},\n{fields}\n}}'
     field_template = '  {key} = {value},'
     fields = '\n'.join(
         field_template.format(key=key, value=value)
@@ -105,7 +105,7 @@ def read_references(base_path, path, context):
     for entry in entries:
         key = entry.key
         for ref in references:
-            if ref.metadata.get(key) == key:
+            if ref.metadata['key'] == key:
                 ref.metadata['bibtex'] = format_bibtex(entry)
 
     return references
@@ -159,15 +159,22 @@ class BibliographyGenerator(Generator):
                 continue
 
             logger.debug(
-                f'Read {len(new_metadata)} extra metadata entries fro {file}')
+                f'Read {len(new_metadata)} extra metadata entries from {file}')
             extra_metadata.extend(new_metadata)
 
         # lazy O(n^2)
         for item in extra_metadata:
             key = item['key']
             for ref in bibliography:
-                if ref.metadata.get('key') == key:
+                if ref.metadata['key'] == key:
                     ref.metadata.update(item['metadata'])
+
+        # add ref_href and ref_saveas
+        refdir = self.settings['BIBLIOGRAPHY_REFENTRY_PATH']
+        for ref in bibliography:
+            key = ref.metadata['key']
+            ref.metadata['ref_href'] = os.path.join(refdir, key + '.bib')
+            ref.metadata['ref_saveas'] = os.path.join(refdir, key + '.bib', 'index.html')
 
         self.bibliography = bibliography
 
@@ -181,15 +188,12 @@ class BibliographyGenerator(Generator):
 
     def generate_output(self, writer):
         if self.settings['BIBLIOGRAPHY_WRITE_REFENTRIES']:
-            path = self.settings['BIBLIOGRAPHY_REFENTRY_PATH']
             template = self.env.get_template(
                 self.settings['BIBLIOGRAPHY_REFENTRY_TEMPLATE_NAME'])
             for ref in self.bibliography:
-                if 'key' in ref.metadata:
-                    key = ref.metadata['key']
-                    dest = os.path.join(path, key + '.bib', 'index.html')
-                    writer.write_file(
-                        dest, template, self.context, override_output=True, url='', ref=ref)
+                dest= ref.metadata['ref_saveas']
+                writer.write_file(
+                    dest, template, self.context, override_output=True, url='', ref=ref)
 
 
 def update_settings(pelican):
