@@ -8,9 +8,7 @@ from urllib.parse import urljoin
 
 from pelican import signals
 from pelican.generators import Generator
-
-from .bibtex.models import BibtexEntry
-from .bibtex.parser import parser
+from ply_bibtex_parser import BibtexEntry, parser
 
 try:
     import citeproc
