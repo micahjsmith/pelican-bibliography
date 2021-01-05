@@ -1,3 +1,12 @@
+"""
+Lexer for a subset of Bibtex.
+
+TODO:
+- delimit entries with parentheses
+- other tokens outside of entry mode
+- double quote mark delimited values
+"""
+
 import ply.lex as lex
 
 
@@ -8,6 +17,7 @@ tokens = (
     'ID',
     'ENTRYBEGIN',
     'ENTRYEND',
+    'NUMBER',
     'VALUE',
 )
 
@@ -18,6 +28,12 @@ states = (
 
 
 t_AT = r'@'
+
+
+def t_entry_NUMBER(t):
+    r'\d+'
+    t.value = int(t.value)
+    return t
 
 
 def t_ID(t):
@@ -64,7 +80,7 @@ def t_value_RBRACE(t):
     t.lexer.level -= 1
 
     if t.lexer.level == 0:
-        t.value = t.lexer.lexdata[t.lexer.code_start:t.lexer.lexpos-1]
+        t.value = t.lexer.lexdata[t.lexer.code_start-1:t.lexer.lexpos]  # include delimiters
         t.type = 'VALUE'
         t.lexer.lineno += t.value.count('\n')
         t.lexer.pop_state()
@@ -89,4 +105,4 @@ def t_error(t):
 t_ignore = ' \t'
 
 
-lexer = lex.lex(debug=1)
+lexer = lex.lex()
