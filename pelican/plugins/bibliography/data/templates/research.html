@@ -20,6 +20,7 @@
     <span class="ref-container">{{ ref.fields.container_title_short or ref.fields.container_title or (ref.fields.type |
         title) or 'Other' }}.</span>
     <span class="ref-date">{{ ref.fields.get('issued', {}).get('year') }}.</span>
+    {% if ref.metadata.note %}<span class="ref-note">({{ ref.metadata.note }})</span>{% endif %}
     {% for link in ref.metadata.links %}
     <a target="_blank" href="{{ link.href }}"><i class="fa fa-{{ link.icon }} fa-1"></i></a>
     {% endfor %}
