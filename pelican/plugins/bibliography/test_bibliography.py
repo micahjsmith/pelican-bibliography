@@ -1,4 +1,7 @@
 from pelican.plugins.bibliography.bibtex.lexer import lexer as _lexer
+from pelican.plugins.bibliography.bibtex.models import BibtexEntry
+from pelican.plugins.bibliography.bibtex.parser import parser as _parser
+
 import pytest
 
 
@@ -7,13 +10,18 @@ def lexer():
     yield _lexer
 
 
+@pytest.fixture(scope='function')
+def parser():
+    yield _parser
+
+
 def compare(lexer, expected):
     for tok, (type_, value) in zip(lexer, expected):
         assert tok.type == type_
         assert tok.value == value
 
     for tok in lexer:
-        assert False, 'lexer has unexpected addditional tokens'
+        assert False, 'lexer has unexpected additional tokens'
 
 
 def test_lexer_good(lexer):
@@ -32,11 +40,11 @@ def test_lexer_good(lexer):
         ('COMMA', ','),
         ('ID', 'foo'),
         ('EQUALS', '='),
-        ('VALUE', 'bar'),
+        ('VALUE', '{bar}'),
         ('COMMA', ','),
         ('ID', 'baz'),
         ('EQUALS', '='),
-        ('VALUE', 'qux {quz}'),
+        ('VALUE', '{qux {quz}}'),
         ('COMMA', ','),
         ('ENTRYEND', '}'),
     ]
@@ -47,7 +55,7 @@ def test_lexer_good(lexer):
 
 def test_lexer_weird(lexer):
     input = '''
-    @article{key, key, key={{{value}}}, , ,}
+    @article{key, 5, key={{{value}}}, , ,}
     '''
 
     expected = [
@@ -56,11 +64,11 @@ def test_lexer_weird(lexer):
         ('ENTRYBEGIN', '{'),
         ('ID', 'key'),
         ('COMMA', ','),
-        ('ID', 'key'),
+        ('NUMBER', 5),
         ('COMMA', ','),
         ('ID', 'key'),
         ('EQUALS', '='),
-        ('VALUE', '{{value}}'),
+        ('VALUE', '{{{value}}}'),
         ('COMMA', ','),
         ('COMMA', ','),
         ('COMMA', ','),
@@ -69,3 +77,27 @@ def test_lexer_weird(lexer):
 
     lexer.input(input)
     compare(lexer, expected)
+
+
+def test_parser_multiple(parser):
+    input = '''
+    @article{myarticle, field1={value1}}
+
+    @book{mybook, field1={value1}, field2=5}
+    '''
+    expected = [
+        BibtexEntry(
+            type='article',
+            key='myarticle',
+            fields={'field1': '{value1}'},
+        ),
+        BibtexEntry(
+            type='book',
+            key='mybook',
+            fields={'field1': '{value1}', 'field2': 5},
+        ),
+    ]
+    result = parser.parse(input)
+
+    for entry, expected_entry in zip(result, expected):
+        assert entry == expected_entry
