@@ -36,31 +36,43 @@ The following variables can be configured in your `pelicanconf.py`:
 
 ```
 # A directory that contains the bibliography-related templates
-BIBLIOGRAPHY_TEMPLATES: Union[str, os.PathLike]
+# type: Union[str, os.PathLike]
+BIBLIOGRAPHY_TEMPLATES = '.../pelican/plugins/bibliography/data/templates'
 
-# A list of directories and files to look at for bibliographies, relative to PATH.
-BIBLIOGRAPHY_PATHS: List[str]
+# A list of directories and files to look at for bibliographies, relative
+# to PATH.
+# type: List[str]
+BIBLIOGRAPHY_PATHS = ["bibliography"]
 
-# A list of directories to exclude when looking for pages
-BIBLIOGRAPHY_EXCLUDES: List[str]
+# A list of directories to exclude when looking for references
+# type: List[str]
+BIBLIOGRAPHY_EXCLUDES = []
 
-# list of file extensions (without leading period) that are bibliography files
-BIBLIOGRAPHY_EXTENSIONS: List[str]
+# list of file extensions (without leading period) that are bibliography
+# files
+# type: List[str]
+BIBLIOGRAPHY_EXTENSIONS = ["bib"]
 
 # list of file extensions (without leading period) that are metadata files
-BIBLIOGRAPHY_METADATA_EXTENSIONS: List[str]
+# type: List[str]
+BIBLIOGRAPHY_METADATA_EXTENSIONS = ["yml", "yaml"]
 
-# attribute of the Reference object to order the bibliography by (in reverse order)
-BIBLIOGRAPHY_ORDER_BY: str
+# attribute of the Reference object to order the bibliography by (in
+# reverse order)
+# type: str
+BIBLIOGRAPHY_ORDER_BY = "sortkey"
 
 # whether to write citations to files
-BIBLIOGRAPHY_WRITE_CITATIONS: bool
+# type: bool
+BIBLIOGRAPHY_WRITE_CITATIONS = True
 
 # template to use for citations
-BIBLIOGRAPHY_CITATION_TEMPLATE_NAME: str
+# type: str
+BIBLIOGRAPHY_CITATION_TEMPLATE_NAME = "citation.html"
 
 # path prefix to save citations as in generated site
-BIBLIOGRAPHY_CITATIONS_PATH: Union[str, os.PathLike]
+# type: str
+BIBLIOGRAPHY_CITATIONS_PATH = "files/bib/"
 ```
 
 ### Bibliography page
