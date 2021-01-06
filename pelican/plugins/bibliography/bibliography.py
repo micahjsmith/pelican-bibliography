@@ -30,15 +30,15 @@ _template_path = os.path.join(
 
 
 DEFAULT_SETTINGS = {
-    'BIBLIOGRAPHY_RESEARCH_TEMPLATES': _template_path,
+    'BIBLIOGRAPHY_TEMPLATES': _template_path,
     'BIBLIOGRAPHY_PATHS': ['bibliography'],
     'BIBLIOGRAPHY_EXCLUDES': [],
     'BIBLIOGRAPHY_EXTENSIONS': ['bib'],
     'BIBLIOGRAPHY_METADATA_EXTENSIONS': ['yml', 'yaml'],
     'BIBLIOGRAPHY_ORDER_BY': 'sortkey',
-    'BIBLIOGRAPHY_WRITE_REFENTRIES': True,
-    'BIBLIOGRAPHY_REFENTRY_TEMPLATE_NAME': 'reference.html',
-    'BIBLIOGRAPHY_REFENTRY_PATH': 'files/bib/'
+    'BIBLIOGRAPHY_WRITE_CITATIONS': True,
+    'BIBLIOGRAPHY_CITATION_TEMPLATE_NAME': 'citation.html',
+    'BIBLIOGRAPHY_CITATIONS_PATH': 'files/bib/'
 }
 
 
@@ -74,7 +74,7 @@ def collection_from_path(source_path: str):
 
 class Reference(Content):
     mandatory_properties = ('key', 'type',)
-    default_template = 'reference'  # this is the default, but ignored
+    default_template = 'citation'  # this is the default, but ignored
 
     @classmethod
     def from_entry(
@@ -97,7 +97,7 @@ class Reference(Content):
         }
 
         # add url and save_as
-        refdir = settings['BIBLIOGRAPHY_REFENTRY_PATH']
+        refdir = settings['BIBLIOGRAPHY_CITATIONS_PATH']
         key = metadata['key']
         metadata['url'] = urljoin(
             settings['SITEURL'], f'{refdir}/{key}.bib')
@@ -219,9 +219,9 @@ class BibliographyGenerator(Generator):
         self._update_context(('bibliography', 'bibliography_collections', ))
 
     def generate_output(self, writer):
-        if self.settings['BIBLIOGRAPHY_WRITE_REFENTRIES']:
+        if self.settings['BIBLIOGRAPHY_WRITE_CITATIONS']:
             template = self.env.get_template(
-                self.settings['BIBLIOGRAPHY_REFENTRY_TEMPLATE_NAME'])
+                self.settings['BIBLIOGRAPHY_CITATION_TEMPLATE_NAME'])
             for ref in self.bibliography:
                 dest = ref.metadata['save_as']
                 writer.write_file(
@@ -231,9 +231,9 @@ class BibliographyGenerator(Generator):
 def update_settings(pelican):
     for key in DEFAULT_SETTINGS:
         pelican.settings.setdefault(key, DEFAULT_SETTINGS[key])
-    if pelican.settings['BIBLIOGRAPHY_RESEARCH_TEMPLATES']:
+    if pelican.settings['BIBLIOGRAPHY_TEMPLATES']:
         pelican.settings['THEME_TEMPLATES_OVERRIDES'].append(
-            pelican.settings['BIBLIOGRAPHY_RESEARCH_TEMPLATES'])
+            pelican.settings['BIBLIOGRAPHY_TEMPLATES'])
 
 
 def get_generators(pelican_object):
