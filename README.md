@@ -4,7 +4,7 @@
 [![PyPI Version](https://img.shields.io/pypi/v/pelican-bibliography)](https://pypi.org/project/pelican-bibliography/)
 ![License](https://img.shields.io/pypi/l/pelican-bibliography?color=blue)
 
-Generated bibliography that can be rendered in references and citations
+Generated bibliography in Pelican that can be rendered in references and citations
 
 This plugin provides a new generator, `BibliographyGenerator`. This generator adds `bibliography` to the Pelican context and can write an output file for each reference using a `citation.html` template. Additionally, the entire bibliography can be written using a `bibliography.html` template or otherwise.
 
