@@ -1,0 +1,5 @@
+- key: turing1937computable
+  metadata:
+    links:
+      - href: https://www.cs.virginia.edu/~robins/Turing_Paper_1936.pdf
+        icon: file-pdf

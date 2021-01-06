@@ -1,0 +1,3 @@
+pelican[Markdown] >= 0.5.4
+invoke
+-e ../..
