@@ -1,9 +1,16 @@
 {% extends "!theme/page.html" %}
 
+{#
+TODO
+    - fix issue with extra period in title if title ends in punctuation
+#}
+
+{% macro link_for(url, icon) %}
+<a target="_blank" class="ref-link" href="{{ url }}"><i class="fa fa-{{ icon }} fa-1"></i> </a>
+{% endmacro %}
+
 {% macro citation_for(ref) -%}
-<a target="_blank" href="{{ ref.url }}">
-    <i class="fa fa-quote-right fa-1"></i>
-</a>
+{{ link_for(ref.url, 'quote-right') }}
 {%- endmacro %}
 
 {% macro bibentry(ref) -%}
@@ -17,11 +24,11 @@
         {%- endfor %}
     </span>
     <span class="ref-title">"{{ ref.title }}."</span>
-    <span class="ref-container">{{ ref.container_title_short or ref.container_title or 'Other' }}.</span>
-    <span class="ref-date">{{ ref.year }}.</span>
+    <span class="ref-container">{{ ref.container_title_short or ref.container_title or (ref.type | title) or 'Other' }}.</span>
+    <span class="ref-date">{{ ref.issued.year }}.</span>
     {% if ref.note %}<span class="ref-note">({{ ref.note }})</span>{% endif %}
     {% for link in ref.links %}
-    <a target="_blank" href="{{ link.href }}"><i class="fa fa-{{ link.icon }} fa-1"></i></a>
+    {{ link_for(link.href, link.icon) }}
     {% endfor %}
     {{ citation_for(ref) }}
 </p>
@@ -52,7 +59,7 @@ a.jump {
   opacity: 0;
   position: absolute;
   left: 2em;
-  padding: 0 2em 2em 2em;
+  padding: 0 1em 1em 1em;
   transition: opacity .5s 0s;
 }
 
@@ -74,6 +81,10 @@ a.jump:hover {
   from { background: #fcf8e3; }
 }
 /* end of jump links */
+
+.ref-link {
+    z-index: 10;
+}
 </style>
 
 {% endblock %}

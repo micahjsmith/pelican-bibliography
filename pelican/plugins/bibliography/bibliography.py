@@ -2,6 +2,7 @@ import logging
 import os.path
 from collections import defaultdict
 from functools import wraps, total_ordering
+from io import StringIO
 from typing import Dict
 from urllib.parse import urljoin
 
@@ -12,14 +13,15 @@ from pelican.generators import Generator
 try:
     import pybtex
     import pybtex.database
+    import citeproc
     import yaml
 except ImportError:
     pybtex = None
+    citeproc = None
     yaml = None
-    fy = None
 
 
-enabled = bool(pybtex) and bool(yaml)
+enabled = bool(pybtex) and bool(citeproc) and bool(yaml)
 logger = logging.getLogger(__name__)
 
 _template_path = os.path.join(
@@ -83,14 +85,11 @@ class Reference(Content):
         settings: dict,
     ):
         content = entry.to_string('bibtex')
+        fields = cls.normalize(entry)
         collection = collection_from_path(source_path)
-        fields = {
-            key.lower(): entry.fields[key]
-            for key in entry.fields
-        }
         metadata = {
             'key': entry.key,
-            'type': entry.type,
+            'bibtex-type': entry.type,
             'sortkey': cls.sortkey(fields),
             'collection': collection,
             **fields,
@@ -113,6 +112,16 @@ class Reference(Content):
             return fields['issued'].sort_key()
         else:
             return _lt
+
+    @staticmethod
+    def normalize(entry: 'pybtex.database.Entry'):
+        # TODO - hack to format the entry
+        bibtex = entry.to_string('bibtex')
+        input = StringIO(bibtex)
+        bibsource = citeproc.source.bibtex.BibTeX(input)
+        fields = dict(bibsource[entry.key])
+        del fields['key']
+        return fields
 
 
 def read_references(source_path) -> 'pybtex.database.BibliographicData':
