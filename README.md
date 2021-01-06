@@ -18,7 +18,7 @@ pip install pelican-bibliography
 
 Now, add it to your `pelicanconf.py`:
 
-```
+```python
 PLUGINS = ['pelican.plugins.bibliography']
 ```
 
@@ -67,7 +67,7 @@ BIBLIOGRAPHY_CITATIONS_PATH: Union[str, os.PathLike]
 
 A main application of this is to create a research page that displays some collection of published research. For example, you could create a new template in your theme, `bibliography.html` that renders your research:
 
-```
+```html
 Here are the titles of my papers:
 <ul>
     {% for ref in bibliography %}
@@ -86,6 +86,9 @@ Template: bibliography
 
 Here is my bibliography
 ```
+
+View an [example bibliography](https://www.micahsmith.com/research/) using the provided
+template.
 
 ### Extra metadata
 
