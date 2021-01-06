@@ -1,3 +1,7 @@
 from .bibliography import register  # NOQA
 
-__version__ = "0.3.0"
+try:
+    from importlib.metadata import version
+    __version__ = version(__name__)
+except:
+    __version__ = '<unknown>'
