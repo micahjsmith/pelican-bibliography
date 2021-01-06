@@ -1,0 +1,79 @@
+{% extends "!theme/page.html" %}
+
+{% macro citation_for(ref) -%}
+<a target="_blank" href="{{ ref.url }}">
+    <i class="fa fa-quote-right fa-1"></i>
+</a>
+{%- endmacro %}
+
+{% macro bibentry(ref) -%}
+<p class="ref" id="{{ ref.key }}">
+    <a class="jump" href="#{{ ref.key }}"></a>
+    <span class="ref-author-list">
+        {% for author in ref.author -%}
+        {% if loop.last and not loop.first %} and {% endif %}<span class="ref-author"
+            data-given="{{ author.get('given') }}" data-family="{{ author.family }}">{{ author.get('given') }} {{
+            author.family }}</span>{% if not loop.last %}, {% else %}.{% endif %}
+        {%- endfor %}
+    </span>
+    <span class="ref-title">"{{ ref.title }}."</span>
+    <span class="ref-container">{{ ref.container_title_short or ref.container_title or 'Other' }}.</span>
+    <span class="ref-date">{{ ref.year }}.</span>
+    {% if ref.note %}<span class="ref-note">({{ ref.note }})</span>{% endif %}
+    {% for link in ref.links %}
+    <a target="_blank" href="{{ link.href }}"><i class="fa fa-{{ link.icon }} fa-1"></i></a>
+    {% endfor %}
+    {{ citation_for(ref) }}
+</p>
+{%- endmacro %}
+
+{% block page_content %}
+{{ page.content }}
+
+<h2>Publications</h2>
+{% for ref in bibliography %}
+{{ bibentry(ref) }}
+{% endfor %}
+
+{% endblock %}
+
+{% block meta %}
+{{ super() }}
+
+<style>
+
+/* jump links for research page, adapted from 6031 */
+.margin {
+  position: fixed;
+  height: 100%;
+}
+
+a.jump {
+  opacity: 0;
+  position: absolute;
+  left: 2em;
+  padding: 0 2em 2em 2em;
+  transition: opacity .5s 0s;
+}
+
+a.jump::after {
+  content: '#';
+}
+
+.margin:hover ~ * a.jump,
+p:hover > a.jump,
+a.jump:hover {
+  opacity: 1;
+  transition: opacity .5s 0s;
+}
+
+[id]:target {
+  animation: highlightout 3s;
+}
+@keyframes highlightout {
+  from { background: #fcf8e3; }
+}
+/* end of jump links */
+</style>
+
+{% endblock %}

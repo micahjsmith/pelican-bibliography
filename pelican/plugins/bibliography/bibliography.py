@@ -1,22 +1,25 @@
 import logging
 import os.path
 from collections import defaultdict
-from copy import deepcopy
-from functools import total_ordering
-from typing import List
+from functools import wraps, total_ordering
+from typing import Dict
 from urllib.parse import urljoin
 
 from pelican import signals
+from pelican.contents import Content
 from pelican.generators import Generator
-from ply_bibtex_parser import BibtexEntry, parser
 
 try:
-    import citeproc
+    import pybtex
+    import pybtex.database
     import yaml
 except ImportError:
-    citeproc = None
+    pybtex = None
     yaml = None
+    fy = None
 
+
+enabled = bool(pybtex) and bool(yaml)
 logger = logging.getLogger(__name__)
 
 _template_path = os.path.join(
@@ -30,9 +33,9 @@ DEFAULT_SETTINGS = {
     'BIBLIOGRAPHY_EXCLUDES': [],
     'BIBLIOGRAPHY_EXTENSIONS': ['bib'],
     'BIBLIOGRAPHY_METADATA_EXTENSIONS': ['yml', 'yaml'],
-    # 'BIBLIOGRAPHY_ORDER_BY': lambda ref: -ref.issued.year,  # TODO
+    'BIBLIOGRAPHY_ORDER_BY': 'sortkey',
     'BIBLIOGRAPHY_WRITE_REFENTRIES': True,
-    'BIBLIOGRAPHY_REFENTRY_TEMPLATE_NAME': 'bibentry.html',
+    'BIBLIOGRAPHY_REFENTRY_TEMPLATE_NAME': 'reference.html',
     'BIBLIOGRAPHY_REFENTRY_PATH': 'files/bib/'
 }
 
@@ -46,72 +49,80 @@ class AlwaysLessThan:
 _lt = AlwaysLessThan()
 
 
-class Reference:
+def memoize(func):
+    memory = {}
 
-    def __init__(self, ref: citeproc.source.Reference, metadata: dict = None):
-        self.fields = dict(ref)
-        self.metadata = {
-            'key': ref.key,
-            'type': ref.type,
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        key = args + tuple(sorted(kwargs.items())) if kwargs else args
+        if key not in memory:
+            memory[key] = func(*args, **kwargs)
+        return memory[key]
+
+    return wrapper
+
+
+@memoize
+def collection_from_path(source_path: str):
+    # process metadata
+    _, tail = os.path.split(source_path)
+    collection, _ = os.path.splitext(tail)
+    return collection
+
+
+class Reference(Content):
+    mandatory_properties = ('key', 'type',)
+    default_template = 'reference'  # this is the default, but ignored
+
+    @classmethod
+    def from_entry(
+        cls,
+        entry: pybtex.database.Entry,
+        source_path: str,
+        metadata: dict,
+        settings: dict,
+    ):
+        content = entry.to_string('bibtex')
+        collection = collection_from_path(source_path)
+        fields = {
+            key.lower(): entry.fields[key]
+            for key in entry.fields
         }
-        if metadata is not None:
-            self.metadata.update(metadata)
+        metadata = {
+            'key': entry.key,
+            'type': entry.type,
+            'sortkey': cls.sortkey(fields),
+            'collection': collection,
+            **fields,
+            **metadata,
+        }
 
-    @property
-    def sortkey(self):
-        if 'issued' in self.fields:
-            return self.fields['issued'].sort_key()
+        # add url and save_as
+        refdir = settings['BIBLIOGRAPHY_REFENTRY_PATH']
+        key = metadata['key']
+        metadata['url'] = urljoin(
+            settings['SITEURL'], f'{refdir}/{key}.bib')
+        metadata['save_as'] = os.path.join(
+            refdir, key + '.bib', 'index.html')
+
+        return cls(content, metadata=metadata, source_path=source_path)
+
+    @staticmethod
+    def sortkey(fields):
+        if 'issued' in fields:
+            return fields['issued'].sort_key()
         else:
             return _lt
 
 
-def format_bibtex(entry: BibtexEntry):
-    entry_template = '@{type}{{{key},\n{fields}\n}}'
-    field_template = '  {key} = {value},'
-    fields = '\n'.join(
-        field_template.format(key=key, value=value)
-        for key, value in entry.fields.items()
-    )
-    return entry_template.format(type=entry.type, key=entry.key, fields=fields)
-
-
-def read_references(base_path, path, context):
-    """Parse content and metadata of csl files"""
-    source_path = os.path.join(base_path, path)
-
+def read_references(source_path) -> 'pybtex.database.BibliographicData':
+    """Parse content and metadata of bibtex files"""
     if not source_path.endswith('bib'):
         raise NotImplementedError
-
-    references = []
-
-    refsource = citeproc.source.bibtex.BibTeX(source_path, encoding='ascii')
-
-    # process metadata
-    metadata = {}
-    _head, _tail = os.path.split(source_path)
-    name, _ext = os.path.splitext(_tail)
-    metadata['collection'] = name
-
-    for key in refsource:
-        ref = Reference(refsource[key], deepcopy(metadata))
-        references.append(ref)
-
-    # separately, parse the .bib file preserving the original markup, and
-    # reformat the bib entry
-    with open(source_path, 'r') as f:
-        entries: List[BibtexEntry] = parser.parse(f.read())
-    # lazy O(n^2)
-    for entry in entries:
-        key = entry.key
-        for ref in references:
-            if ref.metadata['key'] == key:
-                ref.metadata['bibtex'] = format_bibtex(entry)
-
-    return references
+    return pybtex.database.parse_file(source_path, bib_format='bibtex').lower()
 
 
-def read_metadata(base_path, path):
-    source_path = os.path.join(base_path, path)
+def read_metadata(source_path):
     if source_path.endswith('yml') or source_path.endswith('yaml'):
         with open(source_path, 'r') as f:
             return yaml.safe_load(f)  # List[Dict]
@@ -119,8 +130,8 @@ def read_metadata(base_path, path):
 
 class BibliographyGenerator(Generator):
 
-    def generate_context(self):
-        bibliography: List[Reference] = []
+    def _read_bibdata(self) -> Dict[str, 'pybtex.database.BibliographyData']:
+        all_bibdata = {}
         for file in self.get_files(
             self.settings['BIBLIOGRAPHY_PATHS'],
             exclude=self.settings['BIBLIOGRAPHY_EXCLUDES'],
@@ -128,8 +139,9 @@ class BibliographyGenerator(Generator):
         ):
             logger.debug(f'Reading references from {file}')
             try:
-                new_references = read_references(
-                    base_path=self.path, path=file, context=self.context)
+                source_path = os.path.join(self.path, file)
+                new_bibdata = read_references(source_path)
+                all_bibdata[source_path] = new_bibdata
             except Exception as e:
                 logger.error(
                     'Could not process %s\n%s', file, e,
@@ -137,11 +149,14 @@ class BibliographyGenerator(Generator):
                 self._add_failed_source_path(file)
                 continue
 
-            logger.debug(f'Read {len(new_references)} references from {file}')
-            bibliography.extend(new_references)
+            logger.debug(
+                f'Read {len(new_bibdata.entries)} references from {file}')
 
+        return all_bibdata
+
+    def _read_extra_metadata(self) -> Dict[str, dict]:
         # add extra key-value pairs for matching citation keys
-        extra_metadata = []
+        extra_metadata = {}
         for file in self.get_files(
             self.settings['BIBLIOGRAPHY_PATHS'],
             exclude=self.settings['BIBLIOGRAPHY_EXCLUDES'],
@@ -149,8 +164,8 @@ class BibliographyGenerator(Generator):
         ):
             logger.debug(f'Reading extra metadata from {file}')
             try:
-                new_metadata = read_metadata(
-                    base_path=self.path, path=file)
+                source_path = os.path.join(self.path, file)
+                new_metadata = read_metadata(source_path)
             except Exception as e:
                 logger.error(
                     'Could not process %s\n%s', file, e,
@@ -159,32 +174,39 @@ class BibliographyGenerator(Generator):
 
             logger.debug(
                 f'Read {len(new_metadata)} extra metadata entries from {file}')
-            extra_metadata.extend(new_metadata)
+            for item in new_metadata:
+                extra_metadata[item['key']] = item['metadata']
 
-        # lazy O(n^2)
-        for item in extra_metadata:
-            key = item['key']
-            for ref in bibliography:
-                if ref.metadata['key'] == key:
-                    ref.metadata.update(item['metadata'])
+        return extra_metadata
 
-        # add ref_href and ref_saveas
-        refdir = self.settings['BIBLIOGRAPHY_REFENTRY_PATH']
-        for ref in bibliography:
-            key = ref.metadata['key']
-            ref.metadata['ref_href'] = urljoin(
-                self.settings['SITEURL'], f'{refdir}/{key}.bib')
-            ref.metadata['ref_saveas'] = os.path.join(
-                refdir, key + '.bib', 'index.html')
+    def generate_context(self):
+        all_bibdata = self._read_bibdata()
+        extra_metadata = self._read_extra_metadata()
 
-        self.bibliography = bibliography
+        # convert to Reference, subclass of Content
+        bibliography = []
+        for source_path in all_bibdata:
+            bibdata = all_bibdata[source_path]
+            for key in bibdata.entries:
+                entry = bibdata.entries[key]
+                metadata = extra_metadata[key]
+                ref = Reference.from_entry(
+                    entry, source_path, metadata, self.settings)
+                bibliography.append(ref)
 
         # organize into collections
-        self.bibliography_collections = defaultdict(list)
-        for ref in self.bibliography:
-            collection = ref.metadata.get('collection', 'Other')
-            self.bibliography_collections[collection].append(ref)
+        bibliography_collections = defaultdict(list)
+        for ref in bibliography:
+            collection = ref.metadata['collection']
+            bibliography_collections[collection].append(ref)
 
+        sortkey = self.settings['BIBLIOGRAPHY_ORDER_BY']
+
+        def sort(ref):
+            return ref.metadata.get(sortkey)
+
+        self.bibliography = sorted(bibliography, key=sort, reverse=True)
+        self.bibliography_collections = bibliography_collections
         self._update_context(('bibliography', 'bibliography_collections', ))
 
     def generate_output(self, writer):
@@ -192,7 +214,7 @@ class BibliographyGenerator(Generator):
             template = self.env.get_template(
                 self.settings['BIBLIOGRAPHY_REFENTRY_TEMPLATE_NAME'])
             for ref in self.bibliography:
-                dest= ref.metadata['ref_saveas']
+                dest = ref.metadata['save_as']
                 writer.write_file(
                     dest, template, self.context, override_output=True, url='', ref=ref)
 
@@ -210,5 +232,9 @@ def get_generators(pelican_object):
 
 
 def register():
-    signals.initialized.connect(update_settings)
-    signals.get_generators.connect(get_generators)
+    if enabled:
+        signals.initialized.connect(update_settings)
+        signals.get_generators.connect(get_generators)
+    else:
+        logger.warn(
+            'pelican-bibliography disabled due to missing dependencies')
