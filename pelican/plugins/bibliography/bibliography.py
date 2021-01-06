@@ -231,7 +231,7 @@ class BibliographyGenerator(Generator):
             bibdata = all_bibdata[source_path]
             for key in bibdata.entries:
                 entry = bibdata.entries[key]
-                metadata = extra_metadata[key]
+                metadata = extra_metadata.get(key, {})
                 ref = Reference.from_entry(entry, source_path, metadata, self.settings)
                 bibliography.append(ref)
 
@@ -266,7 +266,7 @@ def update_settings(pelican):
     for key in DEFAULT_SETTINGS:
         pelican.settings.setdefault(key, DEFAULT_SETTINGS[key])
     if pelican.settings["BIBLIOGRAPHY_TEMPLATES"]:
-        pelican.settings["THEME_TEMPLATES_OVERRIDES"].append(
+        pelican.settings["THEME_TEMPLATES_OVERRIDES"].insert(0,
             pelican.settings["BIBLIOGRAPHY_TEMPLATES"]
         )
 
