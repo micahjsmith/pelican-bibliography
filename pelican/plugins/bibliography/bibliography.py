@@ -65,9 +65,13 @@ DEFAULT_SETTINGS = {
     # type: str
     "BIBLIOGRAPHY_CITATION_TEMPLATE_NAME": "citation.html",
 
-    # path prefix to save citations as in generated site
+    # format string to link to citation
     # type: str
-    "BIBLIOGRAPHY_CITATIONS_PATH": "files/bib/",
+    "BIBLIOGRAPHY_CITATION_URL": "files/citation/{key}",
+
+    # format string to save citations as in generated site
+    # type: str
+    "BIBLIOGRAPHY_CITATION_SAVE_AS": "files/citation/{key}/index.html",
 }
 
 
@@ -129,10 +133,11 @@ class Reference(Content):
         }
 
         # add url and save_as
-        refdir = settings["BIBLIOGRAPHY_CITATIONS_PATH"]
-        key = metadata["key"]
-        metadata["url"] = urljoin(settings["SITEURL"], f"{refdir}/{key}.bib")
-        metadata["save_as"] = os.path.join(refdir, key + ".bib", "index.html")
+        metadata["url"] = urljoin(
+            settings["SITEURL"],
+            settings['BIBLIOGRAPHY_CITATION_URL'].format(metadata))
+        metadata["save_as"] = (
+            settings['BIBLIOGRAPHY_CITATION_SAVE_AS'].format(metadata))
 
         return cls(content, metadata=metadata, source_path=source_path)
 

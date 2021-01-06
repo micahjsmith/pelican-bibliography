@@ -70,9 +70,13 @@ BIBLIOGRAPHY_WRITE_CITATIONS = True
 # type: str
 BIBLIOGRAPHY_CITATION_TEMPLATE_NAME = "citation.html"
 
-# path prefix to save citations as in generated site
+# format string to link to citation
 # type: str
-BIBLIOGRAPHY_CITATIONS_PATH = "files/bib/"
+BIBLIOGRAPHY_CITATION_URL = "files/citation/{key}"
+
+# format string to save citations as in generated site
+# type: str
+BIBLIOGRAPHY_CITATION_SAVE_AS = "files/citation/{key}/index.html"
 ```
 
 ### Bibliography page
@@ -114,7 +118,7 @@ You can also provide additional metadata in a YAML file with the following struc
 
 Now the keys and values in the metadata hash associated with the citation key will be available in the corresponding `ref.metadata` dictionary in the `bibliography`.
 
-### Styling
+### Bibliography template
 
 The `bibliography.html` default template that is included with the package has its own styling for jump links and highlighting. You can customize additional elements. For example, to style specific authors:
 
@@ -125,6 +129,18 @@ The `bibliography.html` default template that is included with the package has i
 ```
 
 You can use multiple selectors to apply styles to the `ref-author` span with data attributes matching a certain name.
+
+The template also has support for rendering *links* for each item. Add to your metadata file a key `links` that is a list of hashes with keys `href` and `icon`, i.e.
+
+```
+- key: someCitationKey2020
+  metadata:
+    links:
+      - href: https://www.example.com
+        icon: link
+```
+
+Now an icon will be included that links to the given site. The exact icon is determined by `fa-{link.icon}`, so `fa-link` is a link, `icon: file-pdf` would lead to `fa-file-pdf`, etc.
 
 ## Contributing
 
