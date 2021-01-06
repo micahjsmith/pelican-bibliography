@@ -1,5 +1,4 @@
-Bibliography: A Plugin for Pelican
-====================================================
+# Bibliography: A Plugin for Pelican
 
 [![Build Status](https://img.shields.io/github/workflow/status/micahjsmith/pelican-bibliography/build)](https://github.com/micahjsmith/pelican-bibliography/actions)
 [![PyPI Version](https://img.shields.io/pypi/v/pelican-bibliography)](https://pypi.org/project/pelican-bibliography/)
@@ -7,21 +6,29 @@ Bibliography: A Plugin for Pelican
 
 Generated bibliography that can be rendered in references and citations
 
-This plugin provides a new generator, `BibliographyGenerator`. This generator adds `bibliography` to the Pelican context and can write an output file for each reference using a `citation.html` template. Additionally, the entire bibliography can be written using a `bibliography.html` template.
+This plugin provides a new generator, `BibliographyGenerator`. This generator adds `bibliography` to the Pelican context and can write an output file for each reference using a `citation.html` template. Additionally, the entire bibliography can be written using a `bibliography.html` template or otherwise.
 
-Installation
-------------
+## Installation
 
 This plugin can be installed via:
 
-    python -m pip install pelican-bibliography
+```
+pip install pelican-bibliography
+```
 
-Usage
------
+Now, add it to your `pelicanconf.py`:
+
+```
+PLUGINS = ['pelican.plugins.bibliography']
+```
+
+That's it, thanks to the [namespace plugins](https://docs.getpelican.com/en/latest/plugins.html#how-to-use-plugins) in Pelican 4.5+.
+
+## Usage
 
 When this generator is run, it first reads bibliography files from the `BIBLIOGRAPHY_PATHS` setting. For now, only BibTeX (`.bib`) files are supported, but more may be added in the future. Each reference contained in the bibliography is instantiated as a `Reference` object. The content of the reference is its citation in bibtex, while most of the useful information is in the metadata, such as the citation key, the title, the authors, the publication venue. Extra metadata key-value pairs can be read from YAML files in the same bibliography path. Now, you can use `bibliography` in your templates.
 
-Next, the citations can be written to separate files. If desired, for each reference, the citation will be rendered according to the `citation.html` template and written to a configured path.
+Next, the citations can be written to separate files. If desired, for each reference, the citation will be rendered according to the `citation.html` template and written to a configured path. Ideally, your bibliography will link to the citation page so that interested readers can easily cite your work.
 
 ### Configuration
 
@@ -29,7 +36,7 @@ The following variables can be configured in your `pelicanconf.py`:
 
 ```
 # A directory that contains the bibliography-related templates
-BIBLIOGRAPHY_RESEARCH_TEMPLATES: Union[str, os.PathLike]
+BIBLIOGRAPHY_TEMPLATES: Union[str, os.PathLike]
 
 # A list of directories and files to look at for bibliographies, relative to PATH.
 BIBLIOGRAPHY_PATHS: List[str]
@@ -104,17 +111,12 @@ The `bibliography.html` default template that is included with the package has i
 
 You can use multiple selectors to apply styles to the `ref-author` span with data attributes matching a certain name.
 
-Contributing
-------------
+## Contributing
 
-Contributions are welcome and much appreciated. Every little bit helps. You can contribute by improving the documentation, adding missing features, and fixing bugs. You can also help out by reviewing and commenting on [existing issues][].
+Contributions are welcome and much appreciated. Every little bit helps. You can contribute by improving the documentation, adding missing features, and fixing bugs. You can also help out by reviewing and commenting on [existing issues](https://github.com/micahjsmith/pelican-bibliography/issues).
 
-To start contributing to this plugin, review the [Contributing to Pelican][] documentation, beginning with the **Contributing Code** section.
+To start contributing to this plugin, review the [Contributing to Pelican](https://docs.getpelican.com/en/latest/contribute.html) documentation, beginning with the **Contributing Code** section.
 
-[existing issues]: https://github.com/micahjsmith/pelican-bibliography/issues
-[Contributing to Pelican]: https://docs.getpelican.com/en/latest/contribute.html
-
-License
--------
+## License
 
 This project is licensed under the MIT license.
