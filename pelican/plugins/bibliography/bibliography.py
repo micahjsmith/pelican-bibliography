@@ -3,7 +3,7 @@ from functools import total_ordering, wraps
 from io import StringIO
 import logging
 import os.path
-from typing import Dict
+from typing import Dict, List, Union  # noqa
 from urllib.parse import urljoin
 
 from pelican import signals
@@ -33,42 +33,33 @@ DEFAULT_SETTINGS = {
     # A directory that contains the bibliography-related templates
     # type: Union[str, os.PathLike]
     "BIBLIOGRAPHY_TEMPLATES": _template_path,
-
     # A list of directories and files to look at for bibliographies, relative
     # to PATH.
     # type: List[str]
     "BIBLIOGRAPHY_PATHS": ["bibliography"],
-
     # A list of directories to exclude when looking for references
     # type: List[str]
     "BIBLIOGRAPHY_EXCLUDES": [],
-
     # list of file extensions (without leading period) that are bibliography
     # files
     # type: List[str]
     "BIBLIOGRAPHY_EXTENSIONS": ["bib"],
-
     # list of file extensions (without leading period) that are metadata files
     # type: List[str]
     "BIBLIOGRAPHY_METADATA_EXTENSIONS": ["yml", "yaml"],
-
     # attribute of the Reference object to order the bibliography by (in
     # reverse order)
     # type: str
     "BIBLIOGRAPHY_ORDER_BY": "sortkey",
-
     # whether to write citations to files
     # type: bool
     "BIBLIOGRAPHY_WRITE_CITATIONS": True,
-
     # template to use for citations
     # type: str
     "BIBLIOGRAPHY_CITATION_TEMPLATE_NAME": "citation.html",
-
     # format string to link to citation
     # type: str
     "BIBLIOGRAPHY_CITATION_URL": "files/citation/{key}",
-
     # format string to save citations as in generated site
     # type: str
     "BIBLIOGRAPHY_CITATION_SAVE_AS": "files/citation/{key}/index.html",
@@ -134,10 +125,9 @@ class Reference(Content):
 
         # add url and save_as
         metadata["url"] = urljoin(
-            settings["SITEURL"],
-            settings['BIBLIOGRAPHY_CITATION_URL'].format(metadata))
-        metadata["save_as"] = (
-            settings['BIBLIOGRAPHY_CITATION_SAVE_AS'].format(metadata))
+            settings["SITEURL"], settings["BIBLIOGRAPHY_CITATION_URL"].format(metadata)
+        )
+        metadata["save_as"] = settings["BIBLIOGRAPHY_CITATION_SAVE_AS"].format(metadata)
 
         return cls(content, metadata=metadata, source_path=source_path)
 
@@ -271,8 +261,8 @@ def update_settings(pelican):
     for key in DEFAULT_SETTINGS:
         pelican.settings.setdefault(key, DEFAULT_SETTINGS[key])
     if pelican.settings["BIBLIOGRAPHY_TEMPLATES"]:
-        pelican.settings["THEME_TEMPLATES_OVERRIDES"].insert(0,
-            pelican.settings["BIBLIOGRAPHY_TEMPLATES"]
+        pelican.settings["THEME_TEMPLATES_OVERRIDES"].insert(
+            0, pelican.settings["BIBLIOGRAPHY_TEMPLATES"]
         )
 
 
