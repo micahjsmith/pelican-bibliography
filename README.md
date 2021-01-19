@@ -123,7 +123,7 @@ Now the keys and values in the metadata hash associated with the citation key wi
 The `bibliography.html` default template that is included with the package has its own styling for jump links and highlighting. You can customize additional elements. For example, to style specific authors:
 
 ```css
-.ref-author[data-family="Micah J."][data-family="Smith"] {
+.ref-author[data-given="Micah J."][data-family="Smith"] {
     text-weight: bold;
 }
 ```
