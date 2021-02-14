@@ -15,13 +15,11 @@ try:
     import pybtex
     import pybtex.database
     import yaml
+    enabled = True
 except ImportError:
-    pybtex = None
-    citeproc = None
-    yaml = None
+    enabled = False
 
 
-enabled = bool(pybtex) and bool(citeproc) and bool(yaml)
 logger = logging.getLogger(__name__)
 
 _template_path = os.path.join(
