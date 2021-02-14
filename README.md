@@ -79,6 +79,18 @@ BIBLIOGRAPHY_CITATION_URL = "files/citation/{key}"
 BIBLIOGRAPHY_CITATION_SAVE_AS = "files/citation/{key}/index.html"
 ```
 
+### References
+
+To add a formatted reference within a page or post, use the special notation `@bibentry(citeKey)`. When the page or post is generated from your content, such strings will be replaced with the formatted reference text.
+
+Notes
+* The cite key must exist in your bibliography.
+* The reference will be formatted using the `bibentry` jinja macro.
+
+### Bibliography
+
+To add the every formatted reference at once, use the special notation `@bibliography`. This is equivalent to adding separate `@bibentry` text for every cite key in the default sort order.
+
 ### Bibliography page
 
 A main application of this is to create a research page that displays some collection of published research. For example, you could create a new template in your theme, `bibliography.html` that renders your research:
