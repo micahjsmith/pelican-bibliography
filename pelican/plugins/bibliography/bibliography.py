@@ -164,6 +164,18 @@ def read_metadata(source_path):
             return yaml.safe_load(f)  # List[Dict]
 
 
+def load_style(name, kwargs):
+    style_cls = find_plugin('pybtex.style.formatting', style)
+    style = style_cls(
+        label_style=kwargs.get('label_style'),
+        name_style=kwargs.get('name_style'),
+        sorting_style=kwargs.get('sorting_style'),
+        abbreviate_names=kwargs.get('abbreviate_names'),
+        min_crossrefs=min_crossrefs,
+    )
+    return style
+
+
 class BibliographyGenerator(Generator):
     def _read_bibdata(self) -> Dict[str, "pybtex.database.BibliographyData"]:
         all_bibdata = {}
