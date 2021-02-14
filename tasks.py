@@ -22,8 +22,8 @@ PRECOMMIT = (
 def tests(c):
     """Run the test suite"""
     c.run(f"{VENV}/bin/pytest", pty=True)
-    with c.cd('examples/simple'):
-        c.run(f'invoke clean build clean')
+    with c.cd("examples/simple"):
+        c.run("invoke clean build clean")
 
 
 @task

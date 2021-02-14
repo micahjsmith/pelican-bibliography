@@ -161,6 +161,7 @@ def read_metadata(source_path):
 
 
 class BibliographyGenerator(Generator):
+
     def _read_bibdata(self) -> Dict[str, "pybtex.database.BibliographyData"]:
         all_bibdata = {}
         for file in self.get_files(
