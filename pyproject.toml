@@ -8,7 +8,11 @@ readme = "README.md"
 keywords = ["pelican", "plugin", "bibtex"]
 repository = "https://github.com/micahjsmith/pelican-bibliography"
 documentation = "https://docs.getpelican.com"
-include = ["pelican/plugins/bibliography/data/templates/research.html"]
+include = [
+    "pelican/plugins/bibliography/data/templates/bibentry.html",
+    "pelican/plugins/bibliography/data/templates/citation.html",
+    "pelican/plugins/bibliography/data/templates/bibliography.html",
+]
 packages = [
     { include = "pelican" },
 ]
