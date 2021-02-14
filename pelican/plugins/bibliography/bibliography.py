@@ -193,7 +193,7 @@ def load_backend():
 def format_entry(
     entry: "pybtex.database.Entry", style: "pybtex.style.formatting.BaseStyle"
 ):
-    label = ''
+    label = ""
     formatted = style.format_entry(label, entry)
     backend = load_backend()
     stream = StringIO()

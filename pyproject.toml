@@ -29,9 +29,8 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
-entry_points = {
-    'pybtex.backends': ''  # TODO
-}
+[tool.poetry.plugins]
+"pybtex.backends" = ""
 
 [tool.poetry.urls]
 "Funding" = "https://donate.getpelican.com/"
