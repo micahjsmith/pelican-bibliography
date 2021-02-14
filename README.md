@@ -12,7 +12,7 @@ This plugin provides a new generator, `BibliographyGenerator`. This generator ad
 
 This plugin can be installed via:
 
-```
+```shell
 pip install pelican-bibliography
 ```
 
@@ -34,7 +34,7 @@ Next, the citations can be written to separate files. If desired, for each refer
 
 The following variables can be configured in your `pelicanconf.py`:
 
-```
+```python
 # A directory that contains the bibliography-related templates
 # type: Union[str, os.PathLike]
 BIBLIOGRAPHY_TEMPLATES = '.../pelican/plugins/bibliography/data/templates'
@@ -132,7 +132,7 @@ You can use multiple selectors to apply styles to the `ref-author` span with dat
 
 The template also has support for rendering *links* for each item. Add to your metadata file a key `links` that is a list of hashes with keys `href` and `icon`, i.e.
 
-```
+```yaml
 - key: someCitationKey2020
   metadata:
     links:
