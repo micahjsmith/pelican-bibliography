@@ -9,7 +9,9 @@
 {% macro bibentry(ref) -%}
 <p class="ref" id="{{ ref.key }}">
     <a class="jump" href="#{{ ref.key }}"></a>
-    <span class="ref-author-list">
+    {{ ref.formatted }}
+
+    <!-- <span class="ref-author-list">
         {% for author in ref.author -%}
         {% if loop.last and not loop.first %} and {% endif %}<span class="ref-author"
             data-given="{{ author.get('given') }}" data-family="{{ author.family }}">{{ author.get('given') }} {{
@@ -18,7 +20,8 @@
     </span>
     <span class="ref-title">"{{ ref.title }}."</span>
     <span class="ref-container">{{ ref.container_title_short or ref.container_title or (ref.type | title) or 'Other' }}.</span>
-    <span class="ref-date">{{ ref.issued.year }}.</span>
+    <span class="ref-date">{{ ref.issued.year }}.</span> -->
+
     {% if ref.note %}<span class="ref-note">({{ ref.note }})</span>{% endif %}
     {% for link in ref.links %}
     {{ link_for(link.href, link.icon) }}
