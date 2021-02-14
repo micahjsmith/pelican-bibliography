@@ -15,6 +15,7 @@ try:
     import pybtex
     import pybtex.database
     import yaml
+
     enabled = True
 except ImportError:
     enabled = False
@@ -123,9 +124,12 @@ class Reference(Content):
 
         # add url and save_as
         metadata["url"] = urljoin(
-            settings["SITEURL"], settings["BIBLIOGRAPHY_CITATION_URL"].format(**metadata)
+            settings["SITEURL"],
+            settings["BIBLIOGRAPHY_CITATION_URL"].format(**metadata),
         )
-        metadata["save_as"] = settings["BIBLIOGRAPHY_CITATION_SAVE_AS"].format(**metadata)
+        metadata["save_as"] = settings["BIBLIOGRAPHY_CITATION_SAVE_AS"].format(
+            **metadata
+        )
 
         return cls(content, metadata=metadata, source_path=source_path)
 
@@ -161,7 +165,6 @@ def read_metadata(source_path):
 
 
 class BibliographyGenerator(Generator):
-
     def _read_bibdata(self) -> Dict[str, "pybtex.database.BibliographyData"]:
         all_bibdata = {}
         for file in self.get_files(
