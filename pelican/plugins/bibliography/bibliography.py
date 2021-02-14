@@ -284,9 +284,14 @@ def get_generators(pelican_object):
     return BibliographyGenerator
 
 
+def content_object_init(content_object):
+    return content_object
+
+
 def register():
     if enabled:
         signals.initialized.connect(update_settings)
         signals.get_generators.connect(get_generators)
+        signals.content_object_init.connect(content_object_init)
     else:
         logger.warn("pelican-bibliography disabled due to missing dependencies")
