@@ -14,6 +14,7 @@ try:
     import citeproc
     import pybtex
     import pybtex.database
+    from pybtex.plugin import find_plugin
     import yaml
 
     enabled = True
@@ -62,6 +63,9 @@ DEFAULT_SETTINGS = {
     # format string to save citations as in generated site
     # type: str
     "BIBLIOGRAPHY_CITATION_SAVE_AS": "files/citation/{key}/index.html",
+    # bibliography style supported by pybtex
+    # type: str
+    "BIBLIOGRAPHY_STYLE": "plain",
 }
 
 
@@ -113,11 +117,16 @@ class Reference(Content):
         content = entry.to_string("bibtex")
         fields = cls.normalize(entry)
         collection = collection_from_path(source_path)
+
+        style = load_style(settings["BIBLIOGRAPHY_STYLE"])
+        formatted_entry = format_entry(entry, style)
+
         metadata = {
             "key": entry.key,
             "bibtex-type": entry.type,
             "sortkey": cls.sortkey(fields),
             "collection": collection,
+            "formatted": formatted_entry,
             **fields,
             **metadata,
         }
@@ -164,16 +173,32 @@ def read_metadata(source_path):
             return yaml.safe_load(f)  # List[Dict]
 
 
-def load_style(name, kwargs):
-    style_cls = find_plugin('pybtex.style.formatting', style)
+def load_style(name, **kwargs):
+    style_cls = find_plugin("pybtex.style.formatting", name)
     style = style_cls(
-        label_style=kwargs.get('label_style'),
-        name_style=kwargs.get('name_style'),
-        sorting_style=kwargs.get('sorting_style'),
-        abbreviate_names=kwargs.get('abbreviate_names'),
-        min_crossrefs=min_crossrefs,
+        label_style=kwargs.get("label_style"),
+        name_style=kwargs.get("name_style"),
+        sorting_style=kwargs.get("sorting_style"),
+        abbreviate_names=kwargs.get("abbreviate_names"),
+        # min_crossrefs=min_crossrefs,
     )
     return style
+
+
+def load_backend():
+    backend = find_plugin("pybtex.backends", "plaintext")
+    return backend("utf-8")
+
+
+def format_entry(
+    entry: "pybtex.database.Entry", style: "pybtex.style.formatting.BaseStyle"
+):
+    label = ''
+    formatted = style.format_entry(label, entry)
+    backend = load_backend()
+    stream = StringIO()
+    backend.write_to_stream([formatted], stream)
+    return stream.getvalue()
 
 
 class BibliographyGenerator(Generator):
